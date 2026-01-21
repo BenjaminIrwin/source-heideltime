@@ -21,11 +21,6 @@ output "api_gateway_url" {
   value       = var.create_api_gateway ? "${aws_apigatewayv2_api.heideltime[0].api_endpoint}/extract" : null
 }
 
-output "ecr_repository_url" {
-  description = "ECR repository URL"
-  value       = aws_ecr_repository.heideltime.repository_url
-}
-
 output "log_group_name" {
   description = "CloudWatch log group name"
   value       = aws_cloudwatch_log_group.lambda_logs.name

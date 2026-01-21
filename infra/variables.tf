@@ -74,7 +74,7 @@ variable "cors_allow_origins" {
 variable "create_api_gateway" {
   description = "Whether to create an API Gateway in addition to Function URL"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "tags" {

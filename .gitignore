@@ -45,5 +45,5 @@ infra/*.tfstate.*
 infra/terraform.tfvars
 infra/.terraform.tfstate.lock.info
 
-# Docker
-*.tar
+# Lambda package
+lambda.zip

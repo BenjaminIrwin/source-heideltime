@@ -2,7 +2,7 @@
 # License: GPL-3.0
 #
 # This Terraform configuration deploys HeidelTime as an AWS Lambda
-# function using a container image, with an HTTP API endpoint.
+# function using a zip package, with an HTTP API endpoint.
 
 terraform {
   required_version = ">= 1.0"
@@ -22,49 +22,6 @@ provider "aws" {
 # Get AWS account ID for ARN construction
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
-
-locals {
-  account_id = data.aws_caller_identity.current.account_id
-  region     = data.aws_region.current.name
-  ecr_image  = "${local.account_id}.dkr.ecr.${local.region}.amazonaws.com/${var.ecr_repository_name}:${var.image_tag}"
-}
-
-# ===========================================
-# ECR REPOSITORY
-# ===========================================
-
-resource "aws_ecr_repository" "heideltime" {
-  name                 = var.ecr_repository_name
-  image_tag_mutability = "MUTABLE"
-  force_delete         = true
-
-  image_scanning_configuration {
-    scan_on_push = true
-  }
-
-  tags = var.tags
-}
-
-resource "aws_ecr_lifecycle_policy" "heideltime" {
-  repository = aws_ecr_repository.heideltime.name
-
-  policy = jsonencode({
-    rules = [
-      {
-        rulePriority = 1
-        description  = "Keep last 5 images"
-        selection = {
-          tagStatus   = "any"
-          countType   = "imageCountMoreThan"
-          countNumber = 5
-        }
-        action = {
-          type = "expire"
-        }
-      }
-    ]
-  })
-}
 
 # ===========================================
 # IAM ROLE
@@ -120,13 +77,15 @@ resource "aws_iam_role_policy" "comprehend_access" {
 # ===========================================
 
 resource "aws_lambda_function" "heideltime" {
-  function_name = var.function_name
-  role          = aws_iam_role.lambda_role.arn
-  package_type  = "Image"
-  image_uri     = local.ecr_image
-  timeout       = var.lambda_timeout
-  memory_size   = var.lambda_memory_size
-  architectures = [var.lambda_architecture]
+  filename         = "${path.module}/../lambda.zip"
+  function_name    = var.function_name
+  role             = aws_iam_role.lambda_role.arn
+  handler          = "lambda_handler.handler"
+  source_code_hash = filebase64sha256("${path.module}/../lambda.zip")
+  runtime          = "python3.11"
+  timeout          = var.lambda_timeout
+  memory_size      = var.lambda_memory_size
+  architectures    = [var.lambda_architecture]
 
   environment {
     variables = {
@@ -137,7 +96,6 @@ resource "aws_lambda_function" "heideltime" {
   tags = var.tags
 
   depends_on = [
-    aws_ecr_repository.heideltime,
     aws_cloudwatch_log_group.lambda_logs
   ]
 }
@@ -160,7 +118,7 @@ resource "aws_lambda_function_url" "heideltime" {
 
   cors {
     allow_origins     = var.cors_allow_origins
-    allow_methods     = ["POST", "OPTIONS"]
+    allow_methods     = ["*"]
     allow_headers     = ["content-type"]
     allow_credentials = false
     max_age           = 86400
