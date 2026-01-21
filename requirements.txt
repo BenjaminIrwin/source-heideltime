@@ -1,0 +1,5 @@
+# HeidelTime Python Port - Dependencies
+# This package is licensed under GPL-3.0 (same as HeidelTime)
+
+# AWS SDK for Comprehend NLP preprocessing
+boto3>=1.26.0

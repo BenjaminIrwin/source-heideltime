@@ -1,0 +1,32 @@
+# HeidelTime Python - Example Terraform Variables
+# License: GPL-3.0
+#
+# Copy this file to terraform.tfvars and customize as needed.
+# Do NOT commit terraform.tfvars with sensitive values to version control.
+
+aws_region          = "eu-west-2"
+function_name       = "heideltime"
+ecr_repository_name = "heideltime"
+image_tag           = "latest"
+
+# Lambda configuration
+lambda_timeout      = 30       # seconds
+lambda_memory_size  = 256      # MB
+lambda_architecture = "x86_64" # or "arm64"
+
+# Security
+function_url_auth_type = "NONE"  # or "AWS_IAM" for authenticated access
+cors_allow_origins     = ["*"]   # Restrict in production
+
+# Optional API Gateway (in addition to Function URL)
+create_api_gateway = false
+
+# Logging
+log_retention_days = 7
+
+# Tags
+tags = {
+  Project     = "HeidelTime"
+  Environment = "production"
+  ManagedBy   = "Terraform"
+}
