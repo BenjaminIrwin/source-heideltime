@@ -56,18 +56,35 @@ def get_x_next_month(date: str, x: int) -> str:
 
 
 def get_x_next_week(date: str, x: int) -> str:
-    if "W" in date:
-        match = re.match(r"(\d{4})-W(\d{1,2})", date)
-        if match:
-            year = int(match.group(1))
-            week = int(match.group(2))
-            dt = datetime.strptime(f"{year}-W{week:02d}-1", "%Y-W%W-%w")
+    try:
+        if "W" in date:
+            # Try to match 4-digit year week format: YYYY-Www
+            match = re.match(r"(\d{4})-W(\d{1,2})", date)
+            if match:
+                year = int(match.group(1))
+                week = int(match.group(2))
+                dt = datetime.strptime(f"{year}-W{week:02d}-1", "%Y-W%W-%w")
+            else:
+                # Handle malformed week dates - try to extract what we can
+                # or fall back to current date
+                match2 = re.match(r"(\d{1,4})-W(\d{1,2})", date)
+                if match2:
+                    year = int(match2.group(1))
+                    # Assume 2-digit years are 2000s, 1-digit are invalid
+                    if year < 100:
+                        year = 2000 + year if year < 50 else 1900 + year
+                    week = int(match2.group(2))
+                    dt = datetime.strptime(f"{year}-W{week:02d}-1", "%Y-W%W-%w")
+                else:
+                    # Can't parse, return original
+                    return date
         else:
             dt = datetime.strptime(date, "%Y-%m-%d")
-    else:
-        dt = datetime.strptime(date, "%Y-%m-%d")
-    dt = dt + timedelta(weeks=x)
-    return dt.strftime("%Y-W%W")
+        dt = dt + timedelta(weeks=x)
+        return dt.strftime("%Y-W%W")
+    except ValueError:
+        # If parsing fails, return the original date
+        return date
 
 
 def get_weekday_of_date(date: str) -> int:

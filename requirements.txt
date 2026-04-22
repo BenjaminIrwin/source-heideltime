@@ -3,3 +3,6 @@
 
 # AWS SDK for Comprehend NLP preprocessing
 boto3>=1.26.0
+
+# Testing (dev dependency)
+pytest>=7.0.0

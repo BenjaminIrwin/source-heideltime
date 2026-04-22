@@ -255,11 +255,11 @@ def _check_token_boundaries(match: Match[str], sentence: Sentence) -> bool:
     for token in sentence.tokens:
         if (match.start() + sentence.begin) == token.begin:
             begin_ok = True
-        elif match.start() > 0 and text[match.start() - 1:match.start()] in {".", "/", "–", "-"}:
+        elif match.start() > 0 and text[match.start() - 1:match.start()] in {".", "/", "–", "-", ","}:
             begin_ok = True
         if (match.end() + sentence.begin) == token.end:
             end_ok = True
-        elif match.end() < len(text) and text[match.end():match.end() + 1] in {".", "/", "–", "-"}:
+        elif match.end() < len(text) and text[match.end():match.end() + 1] in {".", "/", "–", "-", ","}:
             end_ok = True
         if begin_ok and end_ok:
             return True
