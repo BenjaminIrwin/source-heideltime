@@ -310,6 +310,7 @@ class HeidelTimeEngine:
         group_granularity: bool = True,
         use_pos: bool = True,
         split_on_newlines: bool = False,
+        extract_age: bool = False,
     ) -> None:
         self.loader = HeidelTimeLoader(language_dir, load_temponym_resources=find_temponyms)
         self.language_dir = language_dir
@@ -326,7 +327,27 @@ class HeidelTimeEngine:
         self.group_granularity = group_granularity
         self.use_pos = use_pos
         self.split_on_newlines = split_on_newlines
+        self.extract_age = extract_age
         self.timex_id = 1
+        if extract_age:
+            self._enable_age_extraction()
+
+    # Age-specific negation rules (those matching "old|young"); excluded so that
+    # "two years old" / "aged 40" can be extracted as DURATIONs. The "quarter"
+    # negations (duration_r2a/b) are NOT age and stay active.
+    _AGE_NEGATION_RULES = frozenset({
+        "duration_r1a_negation", "duration_r1b_negation",
+        "duration_r1c_negation", "duration_r1e_negation_mixed",
+    })
+
+    def _enable_age_extraction(self) -> None:
+        """Drop the age-specific negation rules for this engine instance so age/elapsed
+        expressions are no longer suppressed."""
+        rules = self.loader.rules.rules.get("durationrules")
+        if rules:
+            self.loader.rules.rules["durationrules"] = [
+                r for r in rules if r.name not in self._AGE_NEGATION_RULES
+            ]
 
     def extract(
         self,

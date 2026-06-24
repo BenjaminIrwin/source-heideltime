@@ -191,5 +191,62 @@ class TestMultipleDatesWithCommas:
             f"Expected at least 2 dates, found: {found_texts}"
 
 
+def _engine(**kwargs):
+    return HeidelTimeEngine(
+        language_dir=os.path.join(RESOURCES_DIR, "english"), use_pos=False, **kwargs)
+
+
+class TestAgeExtraction:
+    """#3c — age/elapsed extraction is off by default, enabled by extract_age=True."""
+
+    TEXT = "She is two years old"
+
+    def test_age_blocked_by_default(self):
+        eng = _engine()
+        tx = eng.extract(self.TEXT, sentences=[create_mock_sentence(self.TEXT)])
+        durs = [t for t in tx if t.timex_type == "DURATION"]
+        assert durs == [], f"age should be blocked by default, got {[(t.text, t.value) for t in durs]}"
+
+    def test_age_extracted_when_enabled(self):
+        eng = _engine(extract_age=True)
+        tx = eng.extract(self.TEXT, sentences=[create_mock_sentence(self.TEXT)])
+        durs = [t for t in tx if t.timex_type == "DURATION"]
+        assert any("two years" in t.text for t in durs), \
+            f"expected a 'two years' DURATION, got {[(t.text, t.value) for t in durs]}"
+
+
+class TestSetRecurrence:
+    """#3a — biweekly / fortnightly / every-other recurrence extraction."""
+
+    def test_biweekly(self, engine):
+        text = "The team has biweekly meetings"
+        timexes = engine.extract(text, sentences=[create_mock_sentence(text)])
+        sets = [t for t in timexes if t.timex_type == "SET"]
+        assert any(t.value == "P2W" for t in sets), \
+            f"Expected a P2W SET, got {[(t.text, t.value) for t in sets]}"
+
+    def test_fortnightly(self, engine):
+        text = "Payments arrive fortnightly"
+        timexes = engine.extract(text, sentences=[create_mock_sentence(text)])
+        sets = [t for t in timexes if t.timex_type == "SET"]
+        assert any(t.value == "P2W" for t in sets), \
+            f"Expected a P2W SET, got {[(t.text, t.value) for t in sets]}"
+
+    def test_every_other_week(self, engine):
+        text = "We meet every other week"
+        timexes = engine.extract(text, sentences=[create_mock_sentence(text)])
+        sets = [t for t in timexes if t.timex_type == "SET"]
+        assert any(t.value == "P2W" for t in sets), \
+            f"Expected a P2W SET, got {[(t.text, t.value) for t in sets]}"
+
+    def test_every_other_tuesday(self, engine):
+        text = "Council sits every other Tuesday"
+        timexes = engine.extract(text, sentences=[create_mock_sentence(text)])
+        sets = [t for t in timexes if t.timex_type == "SET"]
+        match = [t for t in sets if t.value == "XXXX-WXX-2"]
+        assert match, f"Expected XXXX-WXX-2 SET, got {[(t.text, t.value) for t in sets]}"
+        assert match[0].freq == "2W", f"Expected freq 2W, got {match[0].freq!r}"
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

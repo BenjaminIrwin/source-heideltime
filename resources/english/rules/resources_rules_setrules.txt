@@ -41,9 +41,18 @@ RULENAME="set_r3b",EXTRACTION="([Ee]very) (%reNumWord1D|%reNumWord2D) %reUnit",N
 // EXAMPLE r4a-1: 2 days each week
 RULENAME="set_r4a",EXTRACTION="([\d]+) %reUnit (each|per) %reUnit",NORM_VALUE="P1%UPPERCASE%(%SUBSTRING%(%normUnit(group(4)),0,1))",NORM_QUANT="EACH",NORM_FREQ="group(1)%normUnit(group(2))"
 
-// set_r5 
+// set_r5
 // EXAMPLE r5a-1: annually
 RULENAME="set_r5a",EXTRACTION="%reSetWords",NORM_VALUE="%normSetWords(group(1))"
+
+// set_r7 (every-other / fortnightly recurrences)
+// EXAMPLE r7a-1: biweekly
+// EXAMPLE r7a-2: fortnightly
+// EXAMPLE r7b-1: every other week
+// EXAMPLE r7c-1: every other Tuesday  (find weekday on a two-week cycle)
+RULENAME="set_r7a",EXTRACTION="([Bb]i-?weekly|[Ff]ortnightly)",NORM_VALUE="P2W"
+RULENAME="set_r7b",EXTRACTION="([Ee]very|[Ee]ach) (other|2nd|[Ss]econd) (weeks?)",NORM_VALUE="P2W",NORM_QUANT="EVERY"
+RULENAME="set_r7c",EXTRACTION="([Ee]very|[Ee]ach) (other|2nd|[Ss]econd) %reWeekday",NORM_VALUE="XXXX-WXX-%normDayInWeek(group(3))",NORM_QUANT="EVERY",NORM_FREQ="2W"
 
 //////////////////////////////
 // PART-OF-DAYS EXPRESSIONS //
