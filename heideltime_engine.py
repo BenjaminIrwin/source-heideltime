@@ -1141,7 +1141,15 @@ def specify_ambiguous_values_string(
                     elif unit == "second":
                         value_new = f"TPZ{op_symbol}0000-00-00T00:00:{diff:02d}"
                 else:
-                    if ltn == "REFUNIT" and unit == "year":
+                    if ltn == "REF":
+                        # "X days/weeks/months/years later/earlier/ago/after": keep the
+                        # UNDEF-REF offset UNANCHORED for SCATEX conversion. Resolving it
+                        # against a preceding in-document date is document-level anchoring,
+                        # which is intentionally deferred -- the relative expression stays
+                        # its own span (e.g. Shift(Now(), Period(DAY, N), AFTER)) rather
+                        # than collapsing onto the prior date.
+                        pass  # value_new remains UNDEF-REF-<unit>-<op>-N
+                    elif ltn == "REFUNIT" and unit == "year":
                         date_with_year = _get_last("dateYear")
                         if not date_with_year:
                             value_new = value_new.replace(check_undef, "XXXX")
