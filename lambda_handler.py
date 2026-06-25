@@ -189,6 +189,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         "find_temponyms": false,         // optional, default: false
         "use_pos": true,                 // optional, default: true
         "split_on_newlines": false,      // optional, default: false
+        "preprocessor": "comprehend",    // optional, "comprehend" (default) or "spacy"
+        "prefilter": true,               // optional, spaCy only: drop triggerless sentences
+        "spacy_model": "en_core_web_md", // optional, spaCy only: override model name
         "sentences": [                   // optional, pre-processed NLP data
             {
                 "text": "sentence text",
@@ -236,10 +239,33 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         sentences = None
         if sentences_data:
             sentences = parse_sentences(sentences_data)
-        
+
         text = body.get("text", "")
         if not text and not sentences:
             return create_response(400, {"error": "Missing required field: text (or sentences)"})
+
+        # Optional local NLP via spaCy (no upstream sentences, no Comprehend call).
+        # When preprocessor="spacy" and no sentences were supplied, run spaCy here to
+        # produce Penn-Treebank POS sentences, then feed them to HeidelTime directly.
+        # We segment the WHOLE document (for windowing on the caller side) but only run
+        # extraction on the temporal-trigger subset (prefilter) to save rule-matching.
+        preprocessor = body.get("preprocessor", "comprehend")
+        all_sentences = None
+        if sentences is None and preprocessor == "spacy":
+            from spacy_preprocessor import has_temporal_trigger
+            from spacy_preprocessor import preprocess as spacy_preprocess
+
+            all_sentences = spacy_preprocess(
+                text,
+                use_pos=body.get("use_pos", True),
+                split_on_newlines=body.get("split_on_newlines", False),
+                prefilter=False,
+                model=body.get("spacy_model"),
+            )
+            if body.get("prefilter", True):
+                sentences = [s for s in all_sentences if has_temporal_trigger(s.text)]
+            else:
+                sentences = all_sentences
 
         # Extract parameters with defaults
         params = {
@@ -261,7 +287,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         # Extract temporal expressions
         timexes = extract_temporal_expressions(**params)
 
-        return create_response(200, {"timexes": timexes})
+        response_body = {"timexes": timexes}
+        # Return the full segmentation so the caller can build context windows from the
+        # same sentence boundaries used for extraction (spaCy preprocessor only).
+        if all_sentences is not None and body.get("return_sentences"):
+            response_body["sentences"] = [
+                {"text": s.text, "begin": s.begin, "end": s.end} for s in all_sentences
+            ]
+
+        return create_response(200, response_body)
 
     except json.JSONDecodeError as e:
         return create_response(400, {"error": f"Invalid JSON: {str(e)}"})

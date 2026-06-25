@@ -9,9 +9,9 @@ function_name       = "heideltime"
 ecr_repository_name = "heideltime"
 image_tag           = "latest"
 
-# Lambda configuration
-lambda_timeout      = 30       # seconds
-lambda_memory_size  = 256      # MB
+# Lambda configuration (container image with spaCy)
+lambda_timeout      = 300      # seconds
+lambda_memory_size  = 3008     # MB (~1.7 vCPU; spaCy parser + container headroom)
 lambda_architecture = "x86_64" # or "arm64"
 
 # Security

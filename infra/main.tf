@@ -73,19 +73,43 @@ resource "aws_iam_role_policy" "comprehend_access" {
 }
 
 # ===========================================
-# LAMBDA FUNCTION
+# ECR REPOSITORY (container image for the Lambda)
+# ===========================================
+# spaCy + model + numpy/thinc/blis exceed Lambda's 250 MB unzipped zip limit, so the
+# function is deployed as a container image. deploy.sh ensures this repo exists and
+# pushes the image before the full terraform apply.
+
+resource "aws_ecr_repository" "heideltime" {
+  name                 = var.ecr_repository_name
+  image_tag_mutability = "MUTABLE"
+  force_delete         = true
+
+  image_scanning_configuration {
+    scan_on_push = false
+  }
+
+  tags = var.tags
+}
+
+# Resolve the pushed image to its digest so Lambda redeploys when the image behind a
+# tag changes (a plain ":tag" image_uri would not be detected as a change).
+data "aws_ecr_image" "heideltime" {
+  repository_name = aws_ecr_repository.heideltime.name
+  image_tag       = var.image_tag
+}
+
+# ===========================================
+# LAMBDA FUNCTION (container image)
 # ===========================================
 
 resource "aws_lambda_function" "heideltime" {
-  filename         = "${path.module}/../lambda.zip"
-  function_name    = var.function_name
-  role             = aws_iam_role.lambda_role.arn
-  handler          = "lambda_handler.handler"
-  source_code_hash = filebase64sha256("${path.module}/../lambda.zip")
-  runtime          = "python3.11"
-  timeout          = var.lambda_timeout
-  memory_size      = var.lambda_memory_size
-  architectures    = [var.lambda_architecture]
+  function_name = var.function_name
+  role          = aws_iam_role.lambda_role.arn
+  package_type  = "Image"
+  image_uri     = "${aws_ecr_repository.heideltime.repository_url}@${data.aws_ecr_image.heideltime.image_digest}"
+  timeout       = var.lambda_timeout
+  memory_size   = var.lambda_memory_size
+  architectures = [var.lambda_architecture]
 
   environment {
     variables = {

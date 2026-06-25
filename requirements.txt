@@ -1,8 +1,15 @@
 # HeidelTime Python Port - Dependencies
 # This package is licensed under GPL-3.0 (same as HeidelTime)
 
-# AWS SDK for Comprehend NLP preprocessing
+# AWS SDK for Comprehend NLP preprocessing (fallback preprocessor path)
 boto3>=1.26.0
+
+# Local NLP preprocessing (preprocessor="spacy"): native Penn-Treebank POS, no
+# Comprehend call. The model itself is NOT pinned here -- it is installed in the
+# container image via the SPACY_MODEL Docker build-arg (default en_core_web_md), so
+# the model can be swapped (sm / md / trf) without editing this file.
+# For en_core_web_trf, the image also installs spacy-transformers.
+spacy>=3.7,<4
 
 # Testing (dev dependency)
 pytest>=7.0.0

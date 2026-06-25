@@ -6,6 +6,11 @@ output "function_name" {
   value       = aws_lambda_function.heideltime.function_name
 }
 
+output "ecr_repository_url" {
+  description = "URL of the ECR repository holding the Lambda container image"
+  value       = aws_ecr_repository.heideltime.repository_url
+}
+
 output "function_arn" {
   description = "ARN of the Lambda function"
   value       = aws_lambda_function.heideltime.arn

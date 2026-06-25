@@ -28,13 +28,13 @@ variable "image_tag" {
 variable "lambda_timeout" {
   description = "Lambda function timeout in seconds"
   type        = number
-  default     = 60
+  default     = 300
 }
 
 variable "lambda_memory_size" {
-  description = "Lambda function memory in MB"
+  description = "Lambda function memory in MB (spaCy parser + container; ~1 vCPU per 1769 MB)"
   type        = number
-  default     = 256
+  default     = 3008
 }
 
 variable "lambda_architecture" {
