@@ -29,12 +29,13 @@ def get_engine(
     find_temponyms: bool = False,
     use_pos: bool = True,
     split_on_newlines: bool = False,
+    context_resolution: bool = True,
 ):
     """Get or create a HeidelTimeEngine instance with the given configuration."""
     from heideltime_engine import HeidelTimeEngine
 
     # Create a cache key from the configuration
-    cache_key = f"{language}:{doc_type}:{find_dates}:{find_times}:{find_durations}:{find_sets}:{find_temponyms}:{use_pos}:{split_on_newlines}"
+    cache_key = f"{language}:{doc_type}:{find_dates}:{find_times}:{find_durations}:{find_sets}:{find_temponyms}:{use_pos}:{split_on_newlines}:{context_resolution}"
 
     if cache_key not in _ENGINE_CACHE:
         # Determine the resources directory
@@ -53,12 +54,14 @@ def get_engine(
             find_temponyms=find_temponyms,
             use_pos=use_pos,
             split_on_newlines=split_on_newlines,
+            context_resolution=context_resolution,
         )
 
     # Update DCT on cached engine if provided
     engine = _ENGINE_CACHE[cache_key]
     engine.dct = dct
     engine.resolve_with_dct = resolve_with_dct
+    engine.context_resolution = context_resolution
     return engine
 
 
@@ -114,6 +117,7 @@ def extract_temporal_expressions(
     find_temponyms: bool = False,
     use_pos: bool = True,
     split_on_newlines: bool = False,
+    context_resolution: bool = True,
     sentences: Optional[List[Sentence]] = None,
 ) -> List[Dict[str, Any]]:
     """
@@ -143,6 +147,7 @@ def extract_temporal_expressions(
         doc_type=doc_type,
         dct=dct,
         resolve_with_dct=resolve_with_dct,
+        context_resolution=context_resolution,
         find_dates=find_dates,
         find_times=find_times,
         find_durations=find_durations,
@@ -274,6 +279,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             "doc_type": body.get("doc_type", "news"),
             "dct": body.get("dct"),
             "resolve_with_dct": body.get("resolve_with_dct", True),
+            "context_resolution": body.get("context_resolution", True),
             "find_dates": body.get("find_dates", True),
             "find_times": body.get("find_times", True),
             "find_durations": body.get("find_durations", True),

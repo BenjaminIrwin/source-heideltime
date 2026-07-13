@@ -311,6 +311,7 @@ class HeidelTimeEngine:
         use_pos: bool = True,
         split_on_newlines: bool = False,
         extract_age: bool = False,
+        context_resolution: bool = True,
     ) -> None:
         self.loader = HeidelTimeLoader(language_dir, load_temponym_resources=find_temponyms)
         self.language_dir = language_dir
@@ -328,6 +329,9 @@ class HeidelTimeEngine:
         self.use_pos = use_pos
         self.split_on_newlines = split_on_newlines
         self.extract_age = extract_age
+        # When False, last-mentioned/narrative anchoring is disabled: underspecified
+        # values stay UNDEF-* for downstream unanchored conversion (silver generation).
+        self.context_resolution = context_resolution
         self.timex_id = 1
         if extract_age:
             self._enable_age_extraction()
@@ -393,6 +397,7 @@ class HeidelTimeEngine:
             dct_for_resolution,
             self.loader.normalizations,
             self.loader.repatterns,
+            context_resolution=self.context_resolution,
         )
         if self.doc_type in {"narrative", "narratives"} and any(
             timex.value.startswith("BC") for timex in timexes
@@ -663,6 +668,8 @@ def specify_ambiguous_values(
     dct: Optional[str],
     normalizations: NormalizationManager,
     repatterns: RePatternManager,
+    *,
+    context_resolution: bool = True,
 ) -> List[Timex]:
     class _LastMentionedContext:
         """
@@ -778,6 +785,7 @@ def specify_ambiguous_values(
                 normalizations,
                 repatterns,
                 last_mentioned=last_mentioned,
+                context_resolution=context_resolution,
             )
         if timex.empty_value:
             timex.empty_value = specify_ambiguous_values_string(
@@ -790,6 +798,7 @@ def specify_ambiguous_values(
                 normalizations,
                 repatterns,
                 last_mentioned=last_mentioned,
+                context_resolution=context_resolution,
             )
         pending_same_begin.append(timex)
 
@@ -810,8 +819,14 @@ def specify_ambiguous_values_string(
     repatterns: RePatternManager,
     *,
     last_mentioned: Optional[dict[str, str]] = None,
+    context_resolution: bool = True,
 ) -> str:
     def _get_last(x: str) -> str:
+        # context_resolution=False disables last-mentioned narrative anchoring: every
+        # consumer then takes its "no anchor" path and the UNDEF-* value is preserved
+        # for downstream unanchored SCATEX conversion (error map F07/F08).
+        if not context_resolution:
+            return ""
         if last_mentioned is not None:
             return last_mentioned.get(x, "")
         return get_last_mentioned_x(linear_dates, index, x, normalizations)
@@ -1018,7 +1033,9 @@ def specify_ambiguous_values_string(
 
     elif ambig_string.startswith("UNDEF"):
         if re.fullmatch(r"UNDEF-REFDATE", ambig_string):
-            if index > 0:
+            if not context_resolution:
+                pass  # keep UNDEF-REFDATE (reads document context directly)
+            elif index > 0:
                 value_new = linear_dates[index - 1].value
             else:
                 value_new = "XXXX-XX-XX"
@@ -1037,6 +1054,8 @@ def specify_ambiguous_values_string(
                 lm_day = _get_last("day")
                 if lm_day:
                     value_new = ambig_string.replace("UNDEF-next-day", get_x_next_day(lm_day, 1))
+                elif not context_resolution:
+                    pass  # keep UNDEF-next-day so the mapper yields Tomorrow()
                 else:
                     value_new = ambig_string.replace("UNDEF-next-day", "XXXX-XX-XX")
 
@@ -1049,6 +1068,8 @@ def specify_ambiguous_values_string(
                 lm_day = _get_last("day")
                 if lm_day:
                     value_new = ambig_string.replace("UNDEF-last-day", get_x_next_day(lm_day, -1))
+                elif not context_resolution:
+                    pass  # keep UNDEF-last-day so the mapper yields Yesterday()
                 else:
                     value_new = ambig_string.replace("UNDEF-last-day", "XXXX-XX-XX")
 
