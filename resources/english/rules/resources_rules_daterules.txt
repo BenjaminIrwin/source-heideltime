@@ -130,7 +130,7 @@ RULENAME="date_r0h",EXTRACTION="%reDayNumber[\.]%reMonthNumber[\.]%reYear4Digit"
 // EXAMPLE r1c_1: 25 of February 2009
 RULENAME="date_r1a",EXTRACTION="(%reMonthLong|%reMonthShort) (%reDayNumberTh|%reDayNumber)[\s]?,? %reYear4Digit(, %reWeekday)?",NORM_VALUE="group(7)-%normMonth(group(1))-%normDay(group(4))"
 RULENAME="date_r1b",EXTRACTION="([Tt]he )?(%reDayWordTh|%reDayNumberTh|%reDayNumber) (%reMonthLong|%reMonthShort)([\s]?,)? %reYear4Digit",NORM_VALUE="group(10)-%normMonth(group(6))-%normDay(group(2))"
-RULENAME="date_r1c",EXTRACTION="([Tt]he )?(%reDayWordTh|%reDayNumberTh|%reDayNumber) (of) (%reMonthLong|%reMonthShort) %reYear4Digit",NORM_VALUE="group(10)-%normMonth(group(7))-%normDay(group(2))"
+RULENAME="date_r1c",EXTRACTION="([Tt]he )?(%reDayWordTh|%reDayNumberTh|%reDayNumber) (of) (%reMonthLong|%reMonthShort)[,]? %reYear4Digit",NORM_VALUE="group(10)-%normMonth(group(7))-%normDay(group(2))"
 RULENAME="date_r1d",EXTRACTION="%reDayNumber[‐–-]%reMonthShort[‐–-]%reYear2Digit",NORM_VALUE="UNDEF-centurygroup(3)-%normMonth(group(2))-%normDay(group(1))"
 
 // date_r2
@@ -194,7 +194,7 @@ RULENAME="date_r61",EXTRACTION="(the|that) weekend",NORM_VALUE="UNDEF-last-week-
 // EXAMPLE r7a_2: Nov. 2001
 // EXAMPLE r7a_3: February of 1999
 // EXAMPLE r7b_1: May and June 2011 (find May 2001)
-RULENAME="date_r7a",EXTRACTION="(%reMonthLong|%reMonthShort)( of | )%reYear4Digit",NORM_VALUE="group(5)-%normMonth(group(1))"
+RULENAME="date_r7a",EXTRACTION="(%reMonthLong|%reMonthShort)( of |, | )%reYear4Digit",NORM_VALUE="group(5)-%normMonth(group(1))"
 RULENAME="date_r7b",EXTRACTION="(%reMonthLong|%reMonthShort)( of | )%reNumWordTeen( |-)%reNumWord2D",NORM_VALUE="%normDurationNumber(group(5))%normDurationNumber(group(7))-%normMonth(group(1))"
 RULENAME="date_r7c",EXTRACTION="(%reMonthLong|%reMonthShort) (and|or|to|until) (%reMonthLong|%reMonthShort) %reYear4Digit",NORM_VALUE="group(8)-%normMonth(group(1))",OFFSET="group(1)-group(1)"
 

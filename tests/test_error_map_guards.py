@@ -78,3 +78,29 @@ def test_a_year_ago_keeps_refunit(monkeypatch=None):
 def test_pm_timestamp_keeps_seconds():
     values = [t.value for t in _extract("It was logged at 10:54:31 PM exactly")]
     assert any(v.endswith("T22:54:31") for v in values), values
+
+
+# --- K7: Victorian comma-year ("November, 1844") must be inside the span ---
+
+def test_month_comma_year():
+    timexes = _extract("It happened in November, 1844. Many wept.")
+    assert any(t.value == "1844-11" for t in timexes), [(t.text, t.value) for t in timexes]
+
+
+def test_day_of_month_comma_year():
+    timexes = _extract("Dated the 17th of April, 1862, at noon")
+    assert any(t.value == "1862-04-17" for t in timexes), [(t.text, t.value) for t in timexes]
+
+
+# --- K8: masthead 'Daily <Proper>' must not be a daily SET ---
+
+def test_daily_masthead_not_set():
+    timexes = _extract("The Daily Stormer published the article")
+    assert not any(t.timex_type == "SET" for t in timexes), \
+        [(t.text, t.timex_type, t.value) for t in timexes]
+
+
+def test_plain_daily_still_set():
+    timexes = _extract("The medication is taken daily with food")
+    assert any(t.timex_type == "SET" and t.value == "XXXX-XX-XX" for t in timexes), \
+        [(t.text, t.timex_type, t.value) for t in timexes]

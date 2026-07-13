@@ -63,3 +63,6 @@ RULENAME="set_r7c",EXTRACTION="([Ee]very|[Ee]ach) (other|2nd|[Ss]econd) %reWeekd
 RULENAME="set_r6a",EXTRACTION="%reWeekday %rePartOfDay[s]",NORM_VALUE="XXXX-WXX-%normDayInWeek(group(1))T%normPartOfDay(group(2))",NORM_FREQ="1W"
 RULENAME="set_r6b",EXTRACTION="%reWeekday (and|or) %reWeekday %rePartOfDay[s]",NORM_VALUE="XXXX-WXX-%normDayInWeek(group(1))T%normPartOfDay(group(4))",NORM_FREQ="1W",OFFSET="group(1)-group(1)"
 
+// Masthead guard (blind-spot audit K8): 'Daily <ProperNoun>' is a publication name,
+// not a daily SET ("Daily Stormer", "Daily Sabah", "Daily Maersk").
+RULENAME="x_set_daily_masthead_negative",EXTRACTION="([Dd]aily) ([A-Z][a-z]+)",NORM_VALUE="REMOVE"
