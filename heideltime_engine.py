@@ -462,6 +462,8 @@ class HeidelTimeEngine:
 
                 value, quant, freq, mod, empty_value = attributes
                 value = _fix_12h_clock(value, rule.name)
+                if empty_value:
+                    empty_value = _fix_12h_clock(empty_value, rule.name)
                 begin = timex_start + sentence.begin
                 end = timex_end + sentence.begin
                 span_text = sentence.text[timex_start:timex_end]

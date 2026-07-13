@@ -293,7 +293,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         # Extract temporal expressions
         timexes = extract_temporal_expressions(**params)
 
-        response_body = {"timexes": timexes}
+        # Capability marker: clients that require context_resolution semantics check
+        # this and hard-fail against stale deployments (blind-spot audit N4).
+        response_body = {"timexes": timexes,
+                         "caps": {"context_resolution": True}}
         # Return the full segmentation so the caller can build context windows from the
         # same sentence boundaries used for extraction (spaCy preprocessor only).
         if all_sentences is not None and body.get("return_sentences"):
