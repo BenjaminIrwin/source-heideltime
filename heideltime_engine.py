@@ -199,6 +199,24 @@ def apply_rule_functions(
     return tonormalize
 
 
+# 12-hour-clock rules add 12 unconditionally via %SUM% (12 PM -> hour 24) and never
+# adjust 12 AM (stays hour 12). Rule files can't express conditionals, so clamp here,
+# keyed by which rule family matched (error map 5a).
+_PM_TIME_RULES = {"time_r5b", "time_r5d", "time_r5f", "time_r5h", "time_r6b", "time_r6d"}
+_AM_TIME_RULES = {"time_r5a", "time_r5c", "time_r5e", "time_r5g", "time_r6a", "time_r6c"}
+_HOUR_IN_VALUE = re.compile(r"T(\d{2})(?=[:0-9]|$)")
+
+
+def _fix_12h_clock(value: str, rule_name: str) -> str:
+    if rule_name in _PM_TIME_RULES:
+        # 12:40 PM: %SUM%(12,12) produced 24 -> noon is hour 12
+        return _HOUR_IN_VALUE.sub(lambda m: "T12" if m.group(1) == "24" else m.group(0), value)
+    if rule_name in _AM_TIME_RULES:
+        # 12:01 AM is midnight -> hour 00
+        return _HOUR_IN_VALUE.sub(lambda m: "T00" if m.group(1) == "12" else m.group(0), value)
+    return value
+
+
 def correct_duration_value(value: str) -> str:
     if re.fullmatch(r"PT[0-9]+H", value):
         match = re.match(r"PT([0-9]+)H", value)
@@ -443,6 +461,7 @@ class HeidelTimeEngine:
                     continue
 
                 value, quant, freq, mod, empty_value = attributes
+                value = _fix_12h_clock(value, rule.name)
                 begin = timex_start + sentence.begin
                 end = timex_end + sentence.begin
                 span_text = sentence.text[timex_start:timex_end]

@@ -466,3 +466,16 @@ RULENAME="x_date_r9a_negative",EXTRACTION="([Ee]uro|EUR|Dollar|\$) [\d]+(-[\d]+)
 // Issue # 29 - addressed Sept 16, 2015 (heideltime 2.0)
 // EXAMPLE"in his 20s"
 RULENAME="x_date_r11a_negative",EXTRACTION="\b[Ii]n (his|her|their) \d\ds",NORM_VALUE="REMOVE"
+
+// Error-map guards (2026-07): suppress year false-positives / degenerate BC parses.
+// A REMOVE span must STRICTLY CONTAIN the year token to suppress it.
+// EXAMPLE: 1,000 BC (comma-thousands would otherwise parse as BC0000 = year 0)
+RULENAME="x_date_bc_comma_negative",EXTRACTION="([\d]+,[\d]{3})[\s]?(BC|B\.C\.)",NORM_VALUE="REMOVE"
+// EXAMPLE: Windows 1709, version 2019, build 1803, iOS 2020
+RULENAME="x_date_version_negative",EXTRACTION="(Windows|[Vv]ersion|[Bb]uild|iOS|Android) %reYear4Digit",NORM_VALUE="REMOVE"
+// EXAMPLE: £1903, GBP 2000 (Dollar/Euro handled by x_date_r9a_negative)
+RULENAME="x_date_gbp_negative",EXTRACTION="(£|GBP)[\s]?[\d]+(-[\d]+)?",NORM_VALUE="REMOVE"
+// EXAMPLE: 1050 U.S. 21 (highway address; Avenue/Street handled by x_date_r7a_negative)
+RULENAME="x_date_highway_negative",EXTRACTION="%reYear4Digit (U\.S\.|Route|Highway|Hwy\.?|Interstate) [\d]+",NORM_VALUE="REMOVE"
+// EXAMPLE: Twenty First Century Fox (corporate name, not a century)
+RULENAME="x_date_century_corp_negative",EXTRACTION="(%reDayNumberTh|%reDayWordTh) [Cc]entur(y|ies) (Fox|Insurance|Bank|Fund)",NORM_VALUE="REMOVE"
