@@ -63,3 +63,18 @@ def test_plain_year_still_detected():
     timexes = _extract("The treaty was signed in 1903 in Paris")
     assert any(t.timex_type == "DATE" and t.value == "1903" for t in timexes), \
         [(t.text, t.value) for t in timexes]
+
+
+# --- K5: "a year ago" keeps its offset semantics when unanchored ---
+
+def test_a_year_ago_keeps_refunit(monkeypatch=None):
+    eng_kw = dict(doc_type="narrative", resolve_with_dct=False, context_resolution=False)
+    values = [t.value for t in _extract("A year ago the factory closed", **eng_kw)]
+    assert any(v.startswith("UNDEF-REFUNIT-year-MINUS-1") for v in values), values
+
+
+# --- K2: PM timestamps keep their seconds ---
+
+def test_pm_timestamp_keeps_seconds():
+    values = [t.value for t in _extract("It was logged at 10:54:31 PM exactly")]
+    assert any(v.endswith("T22:54:31") for v in values), values

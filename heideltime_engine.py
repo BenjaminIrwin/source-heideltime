@@ -1194,7 +1194,13 @@ def specify_ambiguous_values_string(
                     elif ltn == "REFUNIT" and unit == "year":
                         date_with_year = _get_last("dateYear")
                         if not date_with_year:
-                            value_new = value_new.replace(check_undef, "XXXX")
+                            if not context_resolution:
+                                # keep UNDEF-REFUNIT-year-<op>-N: the mapper converts it
+                                # to Shift(Now(), P<n>Y, ...) — degrading to XXXX loses
+                                # the "a year ago" semantics entirely (K5).
+                                pass
+                            else:
+                                value_new = value_new.replace(check_undef, "XXXX")
                         else:
                             if op == "MINUS":
                                 diff = -diff
