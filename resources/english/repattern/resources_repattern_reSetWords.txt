@@ -7,3 +7,7 @@
 [Mm]onthly
 [Dd]aily
 [Ww]eekly
+[Hh]ourly
+[Nn]ightly
+[Yy]early
+[Qq]uarterly

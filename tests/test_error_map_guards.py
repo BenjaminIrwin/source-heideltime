@@ -104,3 +104,18 @@ def test_plain_daily_still_set():
     timexes = _extract("The medication is taken daily with food")
     assert any(t.timex_type == "SET" and t.value == "XXXX-XX-XX" for t in timexes), \
         [(t.text, t.timex_type, t.value) for t in timexes]
+
+
+# --- B1: frequency adverbs (recall gap: 'hourly'/'nightly'/'yearly'/'quarterly'
+#         were labeled as negatives) ---
+
+def test_frequency_adverbs_detected():
+    cases = {"hourly": "XXXX-XX-XXTXX", "nightly": "XXXX-XX-XX",
+             "yearly": "XXXX", "quarterly": "P3M"}
+    for word, expected in cases.items():
+        vals = [t.value for t in _extract(f"The report runs {word} without fail")]
+        assert expected in vals, f"{word}: expected {expected}, got {vals}"
+
+def test_annually_still_works():
+    vals = [t.value for t in _extract("It is published annually in June")]
+    assert "XXXX" in vals, vals
