@@ -71,16 +71,16 @@ _TRIGGER = re.compile(
     \b(
         jan(uary)?|feb(ruary)?|mar(ch)?|apr(il)?|may|jun(e)?|jul(y)?|aug(ust)?|
         sep(t(ember)?)?|oct(ober)?|nov(ember)?|dec(ember)?|
-        mon(day)?|tue(s(day)?)?|wed(nesday)?|thu(r(s(day)?)?)?|fri(day)?|
-        sat(urday)?|sun(day)?|
+        mon(days?)?|tue(s(days?)?)?|wed(nesdays?)?|thu(r(s(days?)?)?)?|fri(days?)?|
+        sat(urdays?)?|sun(days?)?|
         today|yesterday|tomorrow|now|tonight|currently|recently|
-        year|month|week|day|hour|minute|second|decade|century|quarter|season|
-        spring|summer|autumn|fall|winter|morning|afternoon|evening|night|noon|midnight|
+        years?|months?|weeks?|days?|hours?|minutes?|seconds?|decades?|centur(y|ies)|quarters?|seasons?|
+        springs?|summers?|autumns?|falls?|winters?|mornings?|afternoons?|evenings?|nights?|noon|midnights?|
         last|next|this|coming|past|previous|following|earlier|later|ago|since|until|
         till|during|before|after|between|from|by|over|within|throughout|
         every|each|daily|weekly|monthly|yearly|annually|quarterly|hourly|
-        christmas|easter|thanksgiving|halloween|holiday|weekend|
-        century|millennium|era|epoch|moment|period|recent|soon|then|when
+        christmas|easter|thanksgiving|halloween|holidays?|weekends?|
+        centuries|millenni(um|a)|eras?|epochs?|moments?|periods?|recent|soon|then|when
     )\b
     | \d            # any digit (dates, times, years, "3 days")
     | \b\d{1,2}(st|nd|rd|th)\b
