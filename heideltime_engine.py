@@ -1191,6 +1191,14 @@ def specify_ambiguous_values_string(
                         # its own span (e.g. Shift(Now(), Period(DAY, N), AFTER)) rather
                         # than collapsing onto the prior date.
                         pass  # value_new remains UNDEF-REF-<unit>-<op>-N
+                    elif not context_resolution:
+                        # No anchoring requested: keep ANY UNDEF-this/REFUNIT-<unit>-<op>-N
+                        # unresolved so the mapper yields Shift(Now(), P<n><unit>, ...).
+                        # Otherwise the year/decade/century/quarter branches collapse to
+                        # XXXX/XXX and the count ("four years ago") is lost. Month/week/day
+                        # already fall through unchanged; this unifies the whole family
+                        # (subsumes the earlier REFUNIT-year special case).
+                        pass  # value_new remains the UNDEF-*-<op>-N form
                     elif ltn == "REFUNIT" and unit == "year":
                         date_with_year = _get_last("dateYear")
                         if not date_with_year:

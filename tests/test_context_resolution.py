@@ -39,3 +39,16 @@ def test_default_still_resolves():
     next_day = [v for k, v in values.items() if "next day" in k.lower()]
     # default narrative behavior: resolved from the last-mentioned date
     assert next_day and next_day[0] == "2023-10-08", f"expected 2023-10-08, got {next_day}"
+
+
+# --- 'N years/decades ago' must keep its offset unanchored (was collapsing to XXXX,
+#     dropping the number -> Unknown downstream). Month already worked; unify. ---
+
+def test_numeric_year_shift_kept_unanchored():
+    def val(text):
+        eng = HeidelTimeEngine(language_dir=os.path.join(RESOURCES_DIR, "english"),
+                               doc_type="news", use_pos=False, resolve_with_dct=False,
+                               context_resolution=False)
+        return [t.value for t in eng.extract(text, sentences=[create_mock_sentence(text)])]
+    assert any(v == "UNDEF-this-year-MINUS-4" for v in val("It closed four years ago.")), val("It closed four years ago.")
+    assert any(v == "UNDEF-this-month-MINUS-3" for v in val("That was three months ago.")), val("That was three months ago.")
